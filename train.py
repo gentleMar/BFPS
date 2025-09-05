@@ -21,6 +21,7 @@ def train_step(model, train_loader, criterion, optimizer, scheduler, epoch):
     print(f'Current lr: {lr} | Train epoch: {epoch}')
     losses = AverageMeter()
     model.train()
+    scheduler.step()
     for i, (image, mask) in enumerate(tqdm(iter(train_loader), total=len(train_loader))):
         image = image.float().cuda()                                   
         label = mask.unsqueeze(1).float().cuda()                            
@@ -37,7 +38,6 @@ def train_step(model, train_loader, criterion, optimizer, scheduler, epoch):
                 if p.dtype.is_complex:
                     p.data = p.data.float()
         optimizer.step()
-        scheduler.step()
     print(f'Loss: {losses.avg:.4f}')
 
 
@@ -107,7 +107,7 @@ def train(model, args, exp_folder):
     val_loader = DataLoader(dataset=val_set, batch_size=1, shuffle=False, pin_memory=True, num_workers=args.num_workers)
 
     criterion = StructureLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr_rate, weight_decay=args.weight_decay, foreach=False)    
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr_rate, weight_decay=args.weight_decay)    
     start_epoch = 0
     if args.resume_file:
         print("----------")

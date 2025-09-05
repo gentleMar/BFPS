@@ -36,10 +36,19 @@ class PolypDataset(Dataset):
         if self.train:
             transform = A.Compose([
                 A.Resize(height=self.image_size[0], width=self.image_size[1]),
-                A.HorizontalFlip(),
-                A.VerticalFlip(),
-                A.Rotate(limit=90),
-                A.RandomCrop(height=self.image_size[0], width=self.image_size[0]),
+
+                A.HorizontalFlip(p=0.5),
+                A.VerticalFlip(p=0.5),
+                A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=90, p=0.5),
+
+                A.RandomBrightnessContrast(p=0.5),
+                A.HueSaturationValue(p=0.5),
+
+                A.RandomResizedCrop(height=self.image_size[0], width=self.image_size[1], scale=(0.8, 1.0), p=0.5),
+
+                A.GaussianBlur(p=0.3),
+                A.GaussNoise(p=0.3),
+
                 A.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
                 ToTensorV2(),
             ])

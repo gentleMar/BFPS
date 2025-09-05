@@ -58,7 +58,7 @@ class FFTSeparator(nn.Module):
         low_freq_feature_map = torch.fft.ifft2(torch.fft.ifftshift(f_low)).real
         high_freq_feature_map = torch.fft.ifft2(torch.fft.ifftshift(f_high)).real
 
-        return low_freq_feature_map.float(), high_freq_feature_map.float()
+        return low_freq_feature_map, high_freq_feature_map
     
 
 class BFE(nn.Module):
@@ -112,10 +112,10 @@ class HFA(nn.Module):
 class BFPSHead(nn.Module):
     def __init__(self, feature_channels, num_classes):
         super().__init__()
-        self.low_pass1 = FFTSeparator(cutoff=0.7)
-        self.low_pass2 = FFTSeparator(cutoff=0.7)
-        self.low_pass3 = FFTSeparator(cutoff=0.7)
-        self.low_pass4 = FFTSeparator(cutoff=0.7)
+        self.sep1 = FFTSeparator(cutoff=0.7)
+        self.sep2 = FFTSeparator(cutoff=0.7)
+        self.sep3 = FFTSeparator(cutoff=0.7)
+        self.sep4 = FFTSeparator(cutoff=0.7)
 
         self.attn1 = HFA(feature_channels[3])
         self.decoder1_1 = Conv(feature_channels[3], feature_channels[3]//2, kernel_size=3, stride=1, padding=1, bias=False)
@@ -144,9 +144,6 @@ class BFPSHead(nn.Module):
         self.decoder4_up3 = upConv(feature_channels[1], feature_channels[1]//2, scale_factor=2)
         self.bfe4 = BFE(feature_channels[1]//2 + feature_channels[0], feature_channels[0], iterations=1)
         self.attn4 = HFA(feature_channels[0])
-        self.decoder4_1 = Conv(feature_channels[0], feature_channels[0]//2, kernel_size=3, stride=1, padding=1, bias=False)
-        self.decoder4_2 = Conv(feature_channels[0]//2, feature_channels[0]//4, kernel_size=3, stride=1, padding=1, bias=False)
-        self.decoder4_3 = Conv(feature_channels[0]//4, 1, kernel_size=3, stride=1, padding=1, bias=False)
         
         self.decoder5_up4 = upConv(feature_channels[0], feature_channels[0]//2, scale_factor=2)
         self.decoder5_1 = Conv(feature_channels[0]//2, feature_channels[0]//4, kernel_size=3, stride=1, padding=1, bias=False)
@@ -154,10 +151,10 @@ class BFPSHead(nn.Module):
 
         
     def forward(self, features):
-        low_4, high_4 = self.low_pass1(features[0])
-        low_3, high_3 = self.low_pass2(features[1])
-        low_2, high_2 = self.low_pass3(features[2])
-        low_1, high_1 = self.low_pass4(features[3])
+        low_1, high_1 = self.sep1(features[3])
+        low_2, high_2 = self.sep2(features[2])
+        low_3, high_3 = self.sep3(features[1])
+        low_4, high_4 = self.sep4(features[0])
 
         x1 = low_1
         x1 = self.attn1(x1, high_1)
@@ -191,9 +188,7 @@ class BFPSHead(nn.Module):
         x4 = self.bfe4(x4, pred3)
         x4 = self.attn4(x4, high_4)
         x4_up = self.decoder5_up4(x4)
-        x4 = self.decoder4_1(x4)
-        x4 = self.decoder4_2(x4)
-        
+
         x5 = self.decoder5_1(x4_up)
         pred_final = self.decoder5_2(x5)
         output = F.interpolate(pred_final, scale_factor = 2, mode = 'bilinear')

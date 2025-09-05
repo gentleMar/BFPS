@@ -6,7 +6,7 @@ from mmcv.runner import BaseModule
 from .. import builder
 from ..builder import SEGMENTORS
 
-
+# this segmentor might be useful when using it in MMSeg
 @SEGMENTORS.register_module()
 class PolypSegmentation(BaseModule):
     def __init__(self,
