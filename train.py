@@ -156,7 +156,7 @@ if __name__ == '__main__':
     parser.add_argument('--image_size', default=(352, 352), help='the input and output image size')
     parser.add_argument('--num_workers', type=int, default=6, help='number of workers used in dataloading')
     parser.add_argument('--epochs', type=int, default=50, help='number of epochs to train (default: 50)')
-    parser.add_argument('--batch_size', type=int, default=16, help='input batch size for training (default: 32)')
+    parser.add_argument('--batch_size', type=int, default=32, help='input batch size for training (default: 32)')
     parser.add_argument('--lr_rate', type=float, default=1e-4, help='learning rate (default: 1e-4)')
     parser.add_argument('--in_channels', default=3, type=int, help='number of input channels')
     parser.add_argument('--num_classes', default=1, type=int, help='number of classes')
