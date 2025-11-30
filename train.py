@@ -113,7 +113,7 @@ def train(model, args, exp_folder):
         print("----------")
         print(f'Try to load resume file from {args.resume_file}')
         if os.path.isfile(args.resume_file):
-            checkpoint = torch.load(args.resume_file)
+            checkpoint = torch.load(args.resume_file, map_location=torch.device('cpu'))
             start_epoch = checkpoint['epoch']
             model.load_state_dict(checkpoint['state_dict'], strict=False)
             optimizer.load_state_dict(checkpoint['opt_dict'])
@@ -139,7 +139,7 @@ def train(model, args, exp_folder):
 
     checkpoint_name = os.path.join(exp_folder, 'best.pth')
     checkpoint = torch.load(checkpoint_name)
-    model.load_state_dict(checkpoint)
+    model.load_state_dict(checkpoint, map_location=torch.device('cpu'))
     for name in ['Kvasir', 'CVC-ClinicDB', 'CVC-300', 'CVC-ColonDB', 'ETIS-LaribPolypDB']:
         test_set = PolypDataset(args.data_folder, image_size=args.image_size, val_dataset=name, train=False)
         test_loader = DataLoader(dataset=test_set, batch_size=1, shuffle=False, pin_memory=True, num_workers=args.num_workers)
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     parser.add_argument('--image_size', default=(352, 352), help='the input and output image size')
     parser.add_argument('--num_workers', type=int, default=6, help='number of workers used in dataloading')
     parser.add_argument('--epochs', type=int, default=50, help='number of epochs to train (default: 50)')
-    parser.add_argument('--batch_size', type=int, default=32, help='input batch size for training (default: 32)')
+    parser.add_argument('--batch_size', type=int, default=16, help='input batch size for training (default: 16)')
     parser.add_argument('--lr_rate', type=float, default=1e-4, help='learning rate (default: 1e-4)')
     parser.add_argument('--in_channels', default=3, type=int, help='number of input channels')
     parser.add_argument('--num_classes', default=1, type=int, help='number of classes')
